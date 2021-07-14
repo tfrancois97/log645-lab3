@@ -141,12 +141,6 @@ long parallel(int rows, int cols, int iters, double td, double h, int sleep, int
     time_point<high_resolution_clock> timepoint_s = high_resolution_clock::now();
     solvePar(rows, cols, iters, td, h, sleep, matrix, nbProcessor);
     time_point<high_resolution_clock> timepoint_e = high_resolution_clock::now();
-    /*
-    if (0 == rank)
-    {
-        cout << "-----  PARALLEL  -----" << endl << flush;
-        printMatrix(rows, cols, matrix);
-    }*/
 
     deallocateMatrix(rows, matrix);
 
