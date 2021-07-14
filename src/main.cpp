@@ -14,7 +14,7 @@ void command(int argc, char* argv[]);
 
 void initial(int rows, int cols);
 long sequential(int rows, int cols, int iters, double td, double h, int sleep);
-long parallel(int rows, int cols, int iters, double td, double h, int sleep, int rank);
+long parallel(int rows, int cols, int iters, double td, double h, int sleep, int rank, int nbProcessor);
 
 using namespace std::chrono;
 
@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
     int iters;
     double td;
     double h;
+    int nbProcessor;
 
     // MPI variables.
     int mpi_status;
@@ -47,12 +48,13 @@ int main(int argc, char* argv[]) {
     long runtime_seq = 0;
     long runtime_par = 0;
 
-    if(6 != argc) {
+    if(7 != argc) {
         usage();
         return EXIT_FAILURE;
     }
 
     mpi_status = MPI_Init(&argc, &argv);
+
     if(MPI_SUCCESS != mpi_status) {
         cout << "MPI initialization failure." << endl << flush;
         return EXIT_FAILURE;
@@ -63,6 +65,7 @@ int main(int argc, char* argv[]) {
     iters = stoi(argv[3], nullptr, 10);
     td = stod(argv[4], nullptr);
     h = stod(argv[5], nullptr);
+    nbProcessor = stoi(argv[6], nullptr, 10);
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &procCount);
@@ -76,7 +79,7 @@ int main(int argc, char* argv[]) {
     // Ensure that no process will start computing early.
     MPI_Barrier(MPI_COMM_WORLD);
 
-    runtime_par = parallel(rows, cols, iters, td, h, sleep, rank);
+    runtime_par = parallel(rows, cols, iters, td, h, sleep, rank, nbProcessor);
 
     if(0 == rank) {
         printStatistics(procCount, runtime_seq, runtime_par);
@@ -131,19 +134,19 @@ long sequential(int rows, int cols, int iters, double td, double h, int sleep) {
     return duration_cast<microseconds>(timepoint_e - timepoint_s).count();
 }
 
-long parallel(int rows, int cols, int iters, double td, double h, int sleep, int rank) {
+long parallel(int rows, int cols, int iters, double td, double h, int sleep, int rank, int nbProcessor) {
     double ** matrix = allocateMatrix(rows, cols);
     fillMatrix(rows, cols, matrix);
 
     time_point<high_resolution_clock> timepoint_s = high_resolution_clock::now();
-    solvePar(rows, cols, iters, td, h, sleep, matrix);
+    solvePar(rows, cols, iters, td, h, sleep, matrix, nbProcessor);
     time_point<high_resolution_clock> timepoint_e = high_resolution_clock::now();
-
+    /*
     if (0 == rank)
     {
         cout << "-----  PARALLEL  -----" << endl << flush;
         printMatrix(rows, cols, matrix);
-    }
+    }*/
 
     deallocateMatrix(rows, matrix);
 

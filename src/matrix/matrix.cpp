@@ -27,3 +27,4 @@ void fillMatrix(int rows, int cols, double ** matrix) {
         }
     }
 }
+
