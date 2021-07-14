@@ -90,7 +90,8 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
                 int currentWidthProcess = widthProcess;
                 if (rank < extraProcess) {
                     ++currentWidthProcess;
-                }.
+                }
+
                 int globalCol = j + rank * currentWidthProcess;
                 if (rank >= extraProcess) {
                     globalCol += extraProcess;
