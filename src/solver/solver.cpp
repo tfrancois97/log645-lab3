@@ -111,7 +111,9 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
         }
     }
     
-    //Calcul
+    /*  
+    *    Algorithme de calcul.
+    */
     for (int k = 1; k <= iterations; ++k) {
         //Varie entre l'index qui est actuelle est celui qui est précédent.
         int currentIndex = k%2;
@@ -138,6 +140,7 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
             }
         }
 
+        //Partie où l'on réalise le calcul
         for (int i = 1; i < rows - 1; ++i) {
             for (int j = 1; j <= widthProcess; ++j)
             {
@@ -153,22 +156,26 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
         }
     }
 
+
+    //Initialisation de la matrice contenant les résultats finals.
     double finalMat[cols][rows];
     for (int i = 0; i < rows; ++i) {
         finalMat[0][i] = 0;
         finalMat[cols-1][i] = 0;
     }
 
+    //Création d'un datatype pour le MPI_Gather afin de prendre seulement une partie de la matrice temporaire.
     MPI_Datatype subArray;
-
     int defaultvalue[2] = {1,0};
     int subsizes[2]  = {widthProcess, rows};
     int largerSizes[2]  = {widthProcess + 2, rows};
     MPI_Type_create_subarray(2, largerSizes, subsizes, defaultvalue, MPI_ORDER_C, MPI_DOUBLE, &subArray);
     MPI_Type_commit(&subArray);
 
+    //Regroupement des résultats de tous les processeurs.
     MPI_Gather(&(temporaryMatrix[iterations%2][0][0]), 1, subArray, &(finalMat[1][0]), widthProcess * rows, MPI_DOUBLE, 0, MPI_COMM_WORLD ); 
 
+    // Impression de la matrice.
     if (rank == 0) {
         cout << "-----  PARALLEL  -----" << endl << flush;
         // Print matrix
