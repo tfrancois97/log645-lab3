@@ -70,9 +70,16 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
     //double c, t, b, l, r;
     
     //double h_square = h * h;
+    int np;
 
-    int widthProcess = (cols - 2) / nbProcessors;
-    int extraProcess = (cols - 2) % nbProcessors;
+    if (nbProcessors > cols -2 ) {
+        np = cols - 2;
+    }
+    else {
+        np = nbProcessors;
+    }
+    int widthProcess = (cols - 2) / np;
+    int extraProcess = (cols - 2) % np;
 
     if (rank < extraProcess) {
         ++widthProcess;
@@ -82,7 +89,7 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j <= widthProcess + 1; ++j)
         {
-            if (i == 0 || i == rows-1 || j == 0 || j == widthProcess + 1){
+            if (i == 0 || i == rows-1 || j == 0 || j == widthProcess + 1) {
                 temporaryMatrix[0][j][i] = 0;
                 temporaryMatrix[1][j][i] = 0;
             }
@@ -105,7 +112,7 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
     {
         int currentIndex = k%2;
         int previousIndex = 1 - currentIndex;
-        if (nbProcessors > 1 && rank < nbProcessors)
+        if (np > 1 && rank < np)
         {
             if (rank == 0)
             {
@@ -113,7 +120,7 @@ void solvePar(int rows, int cols, int iterations, double td, double h, int sleep
                 MPI_Sendrecv(temporaryMatrix[previousIndex][widthProcess], rows, MPI_DOUBLE, rank + 1, tag_send, temporaryMatrix[previousIndex][widthProcess + 1], rows, MPI_DOUBLE, rank + 1, tag_recv, MPI_COMM_WORLD, &status);
             }
             // Send left, receive left.
-            else if (rank == nbProcessors - 1)
+            else if (rank == np - 1)
             {
                 MPI_Sendrecv(temporaryMatrix[previousIndex][1], rows, MPI_DOUBLE, rank - 1, tag_send, temporaryMatrix[previousIndex][0], rows, MPI_DOUBLE, rank - 1, tag_recv, MPI_COMM_WORLD, &status);
             }
